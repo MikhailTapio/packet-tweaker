@@ -1,6 +1,6 @@
 package xyz.nucleoid.packettweaker.mixin;
 
-import net.minecraft.network.listener.PacketListener;
+import net.minecraft.network.PacketListener;
 import org.spongepowered.asm.mixin.Mixin;
 import xyz.nucleoid.packettweaker.PlayerProvidingPacketListener;
 

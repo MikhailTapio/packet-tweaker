@@ -1,9 +1,9 @@
 package xyz.nucleoid.packettweaker;
 
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,13 +12,13 @@ import java.io.IOException;
 public final class PacketContext {
     private static final ThreadLocal<PacketContext> INSTANCE = ThreadLocal.withInitial(PacketContext::new);
 
-    private ServerPlayerEntity target;
+    private ServerPlayer target;
 
     public static PacketContext get() {
         return INSTANCE.get();
     }
 
-    public static void writeWithContext(Packet<?> packet, PacketByteBuf buffer, @Nullable ServerPlayNetworkHandler networkHandler) throws IOException {
+    public static void writeWithContext(Packet<?> packet, FriendlyByteBuf buffer, @Nullable ServerGamePacketListenerImpl networkHandler) throws IOException {
         if (networkHandler == null) {
             packet.write(buffer);
             return;
@@ -33,12 +33,12 @@ public final class PacketContext {
         }
     }
     @Deprecated
-    public static void setReadContext(@Nullable ServerPlayNetworkHandler networkHandler) {
+    public static void setReadContext(@Nullable ServerGamePacketListenerImpl networkHandler) {
         setContext(networkHandler);
     }
 
     @ApiStatus.Internal
-    public static void setContext(@Nullable ServerPlayNetworkHandler networkHandler) {
+    public static void setContext(@Nullable ServerGamePacketListenerImpl networkHandler) {
         if (networkHandler == null) {
             return;
         }
@@ -48,7 +48,7 @@ public final class PacketContext {
     }
 
     @ApiStatus.Internal
-    public static void setContext(@Nullable ServerPlayerEntity player) {
+    public static void setContext(@Nullable ServerPlayer player) {
         PacketContext context = PacketContext.get();
         context.target = player;
     }
@@ -63,7 +63,7 @@ public final class PacketContext {
     }
 
     @Nullable
-    public ServerPlayerEntity getTarget() {
+    public ServerPlayer getTarget() {
         return this.target;
     }
 }
