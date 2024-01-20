@@ -1,70 +1,98 @@
 package xyz.nucleoid.packettweaker;
 
-import net.minecraft.network.FriendlyByteBuf;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.network.Connection;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
 
 public final class PacketContext {
     private static final ThreadLocal<PacketContext> INSTANCE = ThreadLocal.withInitial(PacketContext::new);
 
-    private ServerPlayer target;
+    private ContextProvidingPacketListener target = ContextProvidingPacketListener.EMPTY;
+    @Nullable
+    private Packet<?> encodedPacket = null;
+    @Nullable
+    private Connection connection = null;
 
     public static PacketContext get() {
         return INSTANCE.get();
     }
 
-    public static void writeWithContext(Packet<?> packet, FriendlyByteBuf buffer, @Nullable ServerGamePacketListenerImpl networkHandler) throws IOException {
+    public static void runWithContext(@Nullable PacketListener networkHandler, @Nullable Packet<?> packet, Runnable runnable) {
         if (networkHandler == null) {
-            packet.write(buffer);
+            runnable.run();
             return;
         }
 
         PacketContext context = PacketContext.get();
-        try {
-            context.target = networkHandler.player;
-            packet.write(buffer);
-        } finally {
-            context.target = null;
-        }
+        var oldTarget = context.target;
+        var oldPacket = context.encodedPacket;
+        context.target = (ContextProvidingPacketListener) networkHandler;
+        context.encodedPacket = packet;
+        runnable.run();
+        context.target = oldTarget;
+        context.encodedPacket = oldPacket;
     }
 
-    @Deprecated
-    public static void setReadContext(@Nullable ServerGamePacketListenerImpl networkHandler) {
-        setContext(networkHandler);
+    public static void runWithContext(@Nullable PacketListener networkHandler, Runnable runnable) {
+        runWithContext(networkHandler, null, runnable);
     }
 
     @ApiStatus.Internal
-    public static void setContext(@Nullable ServerGamePacketListenerImpl networkHandler) {
-        if (networkHandler == null) {
+    public static void setContext(@Nullable Connection connection, @Nullable Packet<?> packet) {
+        if (connection == null) {
+            clearContext();
             return;
         }
 
         PacketContext context = PacketContext.get();
-        context.target = networkHandler.player;
+        context.target = (ContextProvidingPacketListener) connection.getPacketListener();
+        context.connection = connection;
+        context.encodedPacket = packet;
     }
-
-    @ApiStatus.Internal
-    public static void setContext(@Nullable ServerPlayer player) {
-        PacketContext context = PacketContext.get();
-        context.target = player;
-    }
-
-    public static void clearReadContext() {
-        clearContext();
-    }
-
     public static void clearContext() {
         PacketContext context = PacketContext.get();
-        context.target = null;
+        context.target = ContextProvidingPacketListener.EMPTY;
+        context.encodedPacket = null;
     }
 
     @Nullable
+    @Deprecated
     public ServerPlayer getTarget() {
+        return this.getPlayer();
+    }
+
+    @Nullable
+    public ServerPlayer getPlayer() {
+        return this.target.getPlayerForPacketTweaker();
+    }
+
+    @Nullable
+    public ClientInformation getClientOptions() {
+        return this.target.getClientOptionsForPacketTweaker();
+    }
+
+    @Nullable
+    public GameProfile getGameProfile() {
+        return this.target.getGameProfileForPacketTweaker();
+    }
+
+
+    public ContextProvidingPacketListener getPacketListener() {
         return this.target;
+    }
+
+    @Nullable
+    public Connection getClientConnection() {
+        return this.connection;
+    }
+
+    @Nullable
+    public Packet<?> getEncodedPacket() {
+        return this.encodedPacket;
     }
 }

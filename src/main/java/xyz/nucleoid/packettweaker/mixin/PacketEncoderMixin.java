@@ -11,24 +11,23 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.nucleoid.packettweaker.PacketContext;
-import xyz.nucleoid.packettweaker.PlayerProvidingPacketListener;
 import xyz.nucleoid.packettweaker.impl.ConnectionHolder;
 
 
 @Mixin(PacketEncoder.class)
 public class PacketEncoderMixin implements ConnectionHolder {
     @Unique
-    private Connection packet_tweaker$connection;
+    private Connection packet_tweaker_reforged$connection;
 
     @Override
     public void packet_tweaker$setConnection(Connection connection) {
-        this.packet_tweaker$connection = connection;
+        this.packet_tweaker_reforged$connection = connection;
     }
 
     @Inject(method = "encode(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;Lio/netty/buffer/ByteBuf;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/Packet;write(Lnet/minecraft/network/FriendlyByteBuf;)V", shift = At.Shift.BEFORE))
     private void packetTweaker_setPacketContext(ChannelHandlerContext channelHandlerContext, Packet<?> packet, ByteBuf byteBuf, CallbackInfo ci) {
-        if (this.packet_tweaker$connection != null) {
-            PacketContext.setContext(PlayerProvidingPacketListener.getPlayer(this.packet_tweaker$connection.getPacketListener()));
+        if (this.packet_tweaker_reforged$connection != null) {
+            PacketContext.setContext(this.packet_tweaker_reforged$connection, packet);
         }
     }
 
