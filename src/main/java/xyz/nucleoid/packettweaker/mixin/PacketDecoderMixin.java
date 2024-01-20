@@ -2,15 +2,16 @@ package xyz.nucleoid.packettweaker.mixin;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import net.minecraft.network.*;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.network.DecoderHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xyz.nucleoid.packettweaker.PacketContext;
 import xyz.nucleoid.packettweaker.PlayerProvidingPacketListener;
 import xyz.nucleoid.packettweaker.impl.ConnectionHolder;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class PacketDecoderMixin implements ConnectionHolder {
     private ClientConnection connection;
 
     @Override
-    public void setConnection(ClientConnection connection) {
+    public void packet_tweaker$setConnection(ClientConnection connection) {
         this.connection = connection;
     }
 

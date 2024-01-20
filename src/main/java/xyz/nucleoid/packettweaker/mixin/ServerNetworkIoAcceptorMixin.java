@@ -19,9 +19,9 @@ public class ServerNetworkIoAcceptorMixin {
     )
     private void packetTweaker_initChannel(Channel channel, CallbackInfo ci, ChannelPipeline channelPipeline, int rateLimit, ClientConnection connection) {
         ConnectionHolder encoder = (ConnectionHolder) channel.pipeline().get("encoder");
-        encoder.setConnection(connection);
+        encoder.packet_tweaker$setConnection(connection);
 
         ConnectionHolder decoder = (ConnectionHolder) channel.pipeline().get("decoder");
-        decoder.setConnection(connection);
+        decoder.packet_tweaker$setConnection(connection);
     }
 }

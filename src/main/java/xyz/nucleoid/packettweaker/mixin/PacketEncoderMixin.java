@@ -21,7 +21,7 @@ public class PacketEncoderMixin implements ConnectionHolder {
     private ClientConnection connection;
 
     @Override
-    public void setConnection(ClientConnection connection) {
+    public void packet_tweaker$setConnection(ClientConnection connection) {
         this.connection = connection;
     }
 

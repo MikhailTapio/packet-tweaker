@@ -12,7 +12,7 @@ public abstract class ServerPlayNetworkHandlerMixin implements PlayerProvidingPa
     @Shadow public ServerPlayerEntity player;
 
     @Override
-    public @Nullable ServerPlayerEntity getPlayerForPacketTweaker() {
+    public @Nullable ServerPlayerEntity packet_tweaker$getPlayerForPacketTweaker() {
         return this.player;
     }
 }
